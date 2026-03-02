@@ -33,7 +33,7 @@ class StringResponse(AgentResponse):
 class StatusAgent[ResponseT: AgentResponse]:
 
     def __init__(self, llm_config: LLMConfig, name: str, system_prompt: str, api_key: str, is_routing: bool,
-                 tools: list[BaseTool | dict[str, Any]],
+                 tools: list[BaseTool],
                  checkpointer: Optional[BaseCheckpointSaver[Any]] = None):
         response_format: type[AgentResponse]
         if is_routing:
@@ -53,7 +53,8 @@ class StatusAgent[ResponseT: AgentResponse]:
             get_model(api_key=api_key,
                       model=llm_config.model,
                       base_url=llm_config.base_url,
-                      reasoning_effort=llm_config.reasoning_effort),
+                      reasoning_effort=llm_config.reasoning_effort,
+                      llm_bindings=llm_config.llm_binding),
             tools=tools,
             checkpointer=saver,
             system_prompt=system_prompt,

@@ -27,6 +27,7 @@ class LLMConfig(BaseModel):
     model: str = Field(description="The model to use for the LLM e.g. gpt-3.5-turbo")
     api_key_env: str = Field(description="The environment variable containing the api key for the LLM provider")
     reasoning_effort: str  = Field(description="The reasoning effort to use for the LLM e.g. high", default="high")
+    llm_binding: Optional[List[str]] = Field(description="The LLM tools supported by the agent", default=None)
 
 
 class CardConfig(BaseModel):
@@ -45,7 +46,6 @@ class AgentItem(BaseModel):
     card: CardConfig = Field(description="The agent card configuration node")
     llm: LLMConfig = Field(description="The LLM configuration node")
     system_prompt: str = Field(description="The system prompt to use for the LLM or a path to a file containing the system prompt")
-    llm_tools: Optional[List[str]] = Field(description="The LLM tools supported by the agent", default=None)
 
     def __init__(self, /, **data: Any) -> None:
         prompt_or_path= data['system_prompt']
@@ -69,10 +69,13 @@ class RouterItem(BaseModel):
 class RouterConfig(BaseModel):
     router: RouterItem = Field(description="The router configuration node")
 
-def get_model(api_key: str, model: str, base_url: str, reasoning_effort: str) -> BaseChatModel:
-    return ChatOpenAI(
+def get_model(api_key: str, model: str, base_url: str, reasoning_effort: str, llm_bindings: Optional[list[str]]) -> BaseChatModel:
+    llm: BaseChatModel = ChatOpenAI(
         model_name=model,
         openai_api_base=base_url,
         openai_api_key=lambda: api_key,
         reasoning_effort=reasoning_effort
     )
+    llm_tools: list[dict[str, Any]] = [{ llm_tool: {} } for llm_tool in llm_bindings] if llm_bindings else []
+    llm.bind_tools(llm_tools)
+    return llm
