@@ -29,12 +29,12 @@ jobs:
         NEW_VERSION=$(toml get --toml-path pyproject.toml project.version)
         echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
-    - name: commit bumped version
-      uses: stefanzweifel/git-auto-commit-action@v7
-      with:
-        commit_message: "Bump version to ${{ steps.bump.outputs.version }}"
-        tag_name: 'v${{steps.bump.outputs.version}}'
-        file_pattern: pyproject.toml
+    #- name: commit bumped version
+   #   uses: stefanzweifel/git-auto-commit-action@v7
+   #   with:
+   #     commit_message: "Bump version to ${{ steps.bump.outputs.version }}"
+    #    tag_name: 'v${{steps.bump.outputs.version}}'
+    #    file_pattern: pyproject.toml
 
     - name: Build binary wheel and source tarball
       run: |
