@@ -2,7 +2,7 @@ import json
 import logging
 import os
 from logging import Logger
-from typing import Optional, Any, Sequence, Callable
+from typing import Optional, Any, Sequence, Callable, cast
 
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.events import EventQueue
@@ -29,7 +29,7 @@ You are a helpful routing assistant which routes user requests to specialized re
 
 class RoutingAgentExecutor(AgentExecutor):
 
-    def __init__(self, agent_config: AgentConfig, routing_tool: BaseTool, tools: Sequence[BaseTool | Callable | dict[str, Any]] | None = None,
+    def __init__(self, agent_config: AgentConfig, routing_tool: BaseTool, tools: list[BaseTool | dict[str, Any]] | None = None,
                  routing_checkpointer: Optional[BaseCheckpointSaver[Any]] = None,
                  specialized_checkpointer: Optional[BaseCheckpointSaver[Any]] = None):
         super().__init__()
@@ -51,10 +51,10 @@ class RoutingAgentExecutor(AgentExecutor):
         self.agent_config = agent_config
         self.registered_tools: dict[str, Any] = {}
         self.api_key = api_key
-        agent_tools = [] if tools is None else tools
-        self.llm_tools = [{ llm_tool: {} } for llm_tool in agent_config.agent.llm_tools] if agent_config.agent.llm_tools else []
+        input_tools = [] if tools is None else tools
+        self.llm_tools: list[BaseTool | dict[str, Any]] = [{ llm_tool: {} } for llm_tool in agent_config.agent.llm_tools] if agent_config.agent.llm_tools else []
 
-        agent_tools.extend(self.llm_tools)
+        agent_tools: list[BaseTool | dict[str, Any]] = input_tools + self.llm_tools
         logger.info(f"Agent tools: {agent_tools}")
 
 
@@ -144,8 +144,8 @@ class RoutingAgentExecutor(AgentExecutor):
         mcp_servers = {tool["name"]: {"url": tool["url"], "transport": tool["protocol"],
                                 "headers": settings.get_mcp_auth_headers(tool["name"])} for tool in mcp_server_raw}
         mcp_client = MultiServerMCPClient(mcp_servers)  # type: ignore[arg-type]
-        agent_tools: list[BaseTool | dict[str, Any]] = await mcp_client.get_tools()
-        agent_tools.extend(self.llm_tools)
+        mcp_tools: list[BaseTool | dict[str, Any]] = cast(list[BaseTool | dict[str, Any]], await mcp_client.get_tools())
+        agent_tools: list[BaseTool | dict[str, Any]] = mcp_tools + self.llm_tools
 
         self.agent = StatusAgent[StringResponse](
             llm_config=self.agent_config.agent.llm,
