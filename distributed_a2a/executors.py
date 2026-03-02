@@ -52,9 +52,7 @@ class RoutingAgentExecutor(AgentExecutor):
         self.registered_tools: dict[str, Any] = {}
         self.api_key = api_key
         agent_tools = [] if tools is None else tools
-
         logger.info(f"Agent tools: {agent_tools}")
-
 
         self.agent = StatusAgent[StringResponse](
             llm_config=agent_config.agent.llm,
