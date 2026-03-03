@@ -98,20 +98,9 @@ class RoutingAgentExecutor(AgentExecutor):
             agent_response: StringResponse = await self.agent(message=context.get_user_input(),
                                                               context_id=context.context_id)
 
-            artifact: Artifact
-            if agent_response.status == TaskState.rejected:
-                artifact = await _route_request_to_matching_agent(self.routing_agent, self.agent_registry, context)
-            else:
-                logger.info(f"Request with id {context.context_id} was successfully processed by agent.")
-                artifact = new_text_artifact(name='current_result', description='Result of request to agent.',
-                                             text=f"*{self.agent_config.agent.card.name}*: {agent_response.response}")
-
-            agent_name: str = agent_card_dict["name"]
-            logger.info(f"Request with id {context.context_id} got rejected and will be rerouted to a '{agent_name}'.",
-                        extra={"card": routing_agent_response.agent_card})
-            artifact = new_text_artifact(name='target_agent', description='New target agent for request.',
-                                         text=json.dumps(agent_card_dict) if isinstance(agent_card_dict, dict) else str(
-                                             agent_card))
+        artifact: Artifact
+        if agent_response.status == TaskState.rejected:
+            artifact = await _route_request_to_matching_agent(self.routing_agent, self.agent_registry, context)
         else:
             logger.info(f"Request with id {context.context_id} was successfully processed by agent.")
             artifact = new_text_artifact(name='current_result', description='Result of request to agent.',
