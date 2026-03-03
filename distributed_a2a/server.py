@@ -47,7 +47,8 @@ def load_app(agent_config: AgentConfig, routing_checkpointer: Optional[BaseCheck
         id=skill.id,
         name=skill.name,
         description=skill.description,
-        tags=skill.tags)
+        tags=skill.tags,
+        examples=skill.examples)
     for skill in agent_config.agent.card.skills]
     skills.append(AgentSkill(
         id='routing',

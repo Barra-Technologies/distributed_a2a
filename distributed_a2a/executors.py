@@ -112,7 +112,7 @@ class RoutingAgentExecutor(AgentExecutor):
         else:
             logger.info(f"Request with id {context.context_id} was successfully processed by agent.")
             artifact = new_text_artifact(name='current_result', description='Result of request to agent.',
-                                         text=agent_response.response)
+                                         text="*{self.agent_config.agent.card.name}*: {agent_response.response}")
 
         # publish actual result
         await event_queue.enqueue_event(TaskArtifactUpdateEvent(append=False,
@@ -134,9 +134,9 @@ class RoutingAgentExecutor(AgentExecutor):
             return
 
         logger.info(f"Agent {self.agent_config.agent.card.name} has access to the following tools: {mcp_server_raw}")
-        tools = {tool["name"]: {"url": tool["url"], "transport": tool["protocol"],
+        mcp_servers = {tool["name"]: {"url": tool["url"], "transport": tool["protocol"],
                                 "headers": settings.get_mcp_auth_headers(tool["name"])} for tool in mcp_server_raw}
-        mcp_client = MultiServerMCPClient(tools)  # type: ignore[arg-type]
+        mcp_client = MultiServerMCPClient(mcp_servers)  # type: ignore[arg-type]
         mcp_tools = await mcp_client.get_tools()
 
         self.agent = StatusAgent[StringResponse](
