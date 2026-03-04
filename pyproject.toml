@@ -48,6 +48,7 @@ python_version = "3.14"
 strict = true
 ignore_missing_imports = true
 plugins = ["pydantic.mypy"]
+explicit_package_bases = true
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

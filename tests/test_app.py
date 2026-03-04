@@ -35,7 +35,7 @@ def fake_llm_server(state: TaskState, response: str) -> Generator[str]:
 
 
 @pytest.fixture(scope="module")
-def fake_registry_server():
+def fake_registry_server() -> Generator[str]:
     port = 8082
     agent_registry = InMemoryAgentRegistry()
     mcp_registry = InMemoryMcpRegistry()
@@ -53,7 +53,7 @@ def fake_registry_server():
 
 
 @pytest.mark.asyncio
-async def test_app_completed_path(fake_registry_server, fake_completed_llm):
+async def test_app_completed_path(fake_registry_server: str, fake_completed_llm: str) -> None:
     # Given
     with FakeAgent(fake_registry_server, fake_completed_llm, "test-agent") as agent:
         # When
@@ -65,7 +65,7 @@ async def test_app_completed_path(fake_registry_server, fake_completed_llm):
 
 
 @pytest.mark.asyncio
-async def test_app_redirect_path(fake_registry_server, fake_completed_llm):
+async def test_app_redirect_path(fake_registry_server: str, fake_completed_llm: str) -> None:
     # Given
     with FakeAgent(fake_registry_server, fake_completed_llm, "second-agent") as second_agent:
         # use the agent card of the second agent as the response message of the first agent
