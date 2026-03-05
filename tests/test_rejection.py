@@ -133,7 +133,7 @@ async def test_rejection_full_flow(fake_registry_server):
                             name="Router",
                             description="Router Agent",
                             version="1.0.0",
-                            url=f"http://127.0.0.1:{router_port}/Router",
+                            url=f"http://127.0.0.1:{router_port}",
                             skills=[]
                         ),
                         llm=LLMConfig(
@@ -162,7 +162,7 @@ async def test_rejection_full_flow(fake_registry_server):
                     # 4. SuccessAgent receives request and completes
                     responses.append((TaskState.completed, FINAL_RESPONSE))
                     
-                    client = RoutingA2AClient(initial_url=f"http://127.0.0.1:{router_port}/Router")
+                    client = RoutingA2AClient(initial_url=f"http://127.0.0.1:{router_port}")
                     
                     result = await client.send_message("Hello", context_id="test-context")
                     
