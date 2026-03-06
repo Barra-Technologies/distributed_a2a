@@ -44,6 +44,19 @@ bump-rc:
 	echo "Bumping version from $$CURRENT_VERSION to $$NEW_VERSION"; \
 	toml set project.version $$NEW_VERSION --toml-path pyproject.toml
 
+release:
+	@CURRENT_VERSION=$$(toml get project.version --toml-path pyproject.toml); \
+	if echo "$$CURRENT_VERSION" | grep -qE "rc[0-9]+$$"; then \
+		NEW_VERSION=$$(echo "$$CURRENT_VERSION" | sed -E 's/rc[0-9]+$$//'); \
+	elif echo "$$CURRENT_VERSION" | grep -q "rc$$"; then \
+		NEW_VERSION=$$(echo "$$CURRENT_VERSION" | sed -E 's/rc$$//'); \
+	else \
+		echo "Current version $$CURRENT_VERSION is not a release candidate"; \
+		exit 1; \
+	fi; \
+	echo "Releasing version from $$CURRENT_VERSION to $$NEW_VERSION"; \
+	toml set project.version $$NEW_VERSION --toml-path pyproject.toml
+
 upload:
 	python -m build
 	python3 -m twine upload dist/*
