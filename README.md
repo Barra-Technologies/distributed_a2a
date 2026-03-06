@@ -243,6 +243,7 @@ You can manually bump the project version using the following `make` targets:
 - `make bump-patch`: Bumps the patch version (e.g., 1.0.0 -> 1.0.1).
 - `make bump-minor`: Bumps the minor version (e.g., 1.0.0 -> 1.1.0).
 - `make bump-major`: Bumps the major version (e.g., 1.0.0 -> 2.0.0).
+- `make bump-rc`: Bumps the release candidate version (e.g., 1.0.0 -> 1.0.1rc1 or 1.0.1rc1 -> 1.0.1rc2).
 - `make bump-version VERSION=x.y.z`: Sets the version to a specific value.
 
 After bumping the version, you can manually publish to PyPI with:
