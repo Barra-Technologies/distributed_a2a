@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Optional
 
 import boto3
+from a2a.server.agent_execution import AgentExecutor
 from a2a.server.apps import A2ARESTFastAPIApplication
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
@@ -67,7 +68,7 @@ def get_agent_card(agent_config: AgentConfig) -> AgentCard:
     )
     return agent_card
 
-def load_app(agent_config: AgentConfig, routing_checkpointer: Optional[BaseCheckpointSaver[Any]] = None, specialized_checkpointer: Optional[BaseCheckpointSaver[Any]] = None) -> FastAPI:
+def load_app(agent_config: AgentConfig, routing_checkpointer: Optional[BaseCheckpointSaver[Any]] = None, specialized_checkpointer: Optional[BaseCheckpointSaver[Any]] = None, executor_overwrite: Optional[AgentExecutor] = None) -> FastAPI:
     agent_card = get_agent_card(agent_config)
     req_opts = settings.registry_auth_headers
 

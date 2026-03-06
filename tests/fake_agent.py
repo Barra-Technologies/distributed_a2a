@@ -2,25 +2,29 @@ import os
 import random
 import threading
 import time
-from typing import Any
+from typing import Any, Optional
 
 import uvicorn
+from a2a.server.agent_execution import AgentExecutor
 from a2a.types import AgentCard
 
 from distributed_a2a.model import AgentConfig, AgentItem, RegistryConfig, RegistryItemConfig, LLMConfig, CardConfig
 from distributed_a2a.server import load_app, get_agent_card
+from stubs import NonRoutingAgent
 
 API_KEY_ENV_VAR = "FAKE_API_KEY"
 os.environ["FAKE_API_KEY"] = "fake-key"
 
 
 class FakeAgent:
+    executor_overwrite: Optional[AgentExecutor] = None
 
-    def __init__(self, registry_url: str, llm_url: str, name: str) -> None:
+    def __init__(self, registry_url: str, llm_url: str, name: str, routing: bool = True) -> None:
         self._registry_url = registry_url
         self._llm_url = llm_url
         self.name = name
         self.app_port = random.randint(10000, 60000)
+        self.routing = routing
         self.config = AgentConfig(
             agent=AgentItem(
                 registry=RegistryConfig(
@@ -47,7 +51,8 @@ class FakeAgent:
         return get_agent_card(self.config)
 
     def __enter__(self) -> FakeAgent:
-        app = load_app(self.config)
+        executor_overwrite  = NonRoutingAgent(agent_config=self.config) if not self.routing else None
+        app = load_app(agent_config=self.config, executor_overwrite=executor_overwrite)
 
         # Start the app server in a separate thread
         app_config = uvicorn.Config(app, host="127.0.0.1", port=self.app_port)
