@@ -28,6 +28,34 @@ class RoutingFailed(Exception):
         self.message = message
 
 
+def _incoming_authorization_header(context: RequestContext) -> str | None:
+    """Reads the raw ``Authorization`` header off the incoming request, if any.
+
+    Purely a pass-through: no assumptions about the token's format or issuer.
+    Requires a ``context_builder`` to have been configured on the serving
+    ``A2ARESTFastAPIApplication`` (see ``server.py``/``router.py``) — without
+    one, ``context.call_context`` is ``None`` and this returns ``None``.
+    """
+    call_context = context.call_context
+    if call_context is None:
+        return None
+    headers = call_context.state.get("headers") or {}
+    return headers.get("authorization")
+
+
+def _mcp_connection_headers(
+    static_headers: dict[str, str], forwarded_authorization: str | None
+) -> dict[str, str]:
+    """Merges the service-level static MCP headers with the caller's forwarded
+    ``Authorization`` header, if any. The forwarded header wins on conflict,
+    though in practice ``static_headers`` carries the API-gateway key, not an
+    ``Authorization`` entry.
+    """
+    if not forwarded_authorization:
+        return dict(static_headers)
+    return {**static_headers, "Authorization": forwarded_authorization}
+
+
 ROUTING_SYSTEM_PROMPT = """
 # Role: Multi-agent Router
 You are a helpful routing assistant which routes user requests to specialized remote agents in  a multi-agent setup.
@@ -117,7 +145,8 @@ class RoutingAgentExecutor(AgentExecutor):
 
         try:
             await _emit_status(event_queue, context, TaskState.working, final=False)
-            mcp_client = await self._build_mcp_client()
+            forwarded_authorization = _incoming_authorization_header(context)
+            mcp_client = await self._build_mcp_client(forwarded_authorization=forwarded_authorization)
             if mcp_client is not None:
                 self._update_agent_with_tools(await mcp_client.get_tools())
             invocation = await self.agent(message=context.get_user_input(),
@@ -169,7 +198,7 @@ class RoutingAgentExecutor(AgentExecutor):
         )
         return artifact, TaskState(agent_response.status), file_parts, delivered_sources
 
-    async def _build_mcp_client(self) -> MultiServerMCPClient | None:
+    async def _build_mcp_client(self, forwarded_authorization: str | None = None) -> MultiServerMCPClient | None:
         mcp_server_raw = await self.mcp_registry.get_mcp_tool_for_agent(self.agent_config.agent.card.name)
         if not mcp_server_raw:
             return None
@@ -178,7 +207,9 @@ class RoutingAgentExecutor(AgentExecutor):
             tool["name"]: {
                 "url": tool["url"],
                 "transport": tool["protocol"],
-                "headers": settings.get_mcp_auth_headers(tool["name"])
+                "headers": _mcp_connection_headers(
+                    settings.get_mcp_auth_headers(tool["name"]), forwarded_authorization
+                ),
             }
             for tool in mcp_server_raw
         }
