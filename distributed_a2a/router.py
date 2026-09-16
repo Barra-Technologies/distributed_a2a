@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 
 from a2a.server.apps import A2ARESTFastAPIApplication
+from a2a.server.apps.jsonrpc.jsonrpc_app import DefaultCallContextBuilder
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCard, AgentSkill
@@ -67,6 +68,8 @@ def load_router(router_config: RouterConfig) -> FastAPI:
             agent_executor=executor,
             task_store=InMemoryTaskStore()  # TODO replace with dynamodb store
 
-        )).build(title=agent_card.name,
-                 lifespan=lifespan,
-                 root_path=root_path)
+        ),
+        context_builder=DefaultCallContextBuilder()).build(
+            title=agent_card.name,
+            lifespan=lifespan,
+            root_path=root_path)

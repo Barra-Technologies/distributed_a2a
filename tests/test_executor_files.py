@@ -79,7 +79,7 @@ async def test_executor_emits_no_file_event_when_no_artifacts() -> None:
         [HumanMessage(content="hi")],
     )
 
-    async def _no_mcp_client() -> None:
+    async def _no_mcp_client(forwarded_authorization: str | None = None) -> None:
         return None
 
     executor._build_mcp_client = _no_mcp_client  # type: ignore[method-assign]
@@ -128,7 +128,7 @@ async def test_executor_emits_file_part_from_langchain_content_block() -> None:
         [HumanMessage(content="render a CV please"), tool_msg],
     )
 
-    async def _no_mcp_client() -> None:
+    async def _no_mcp_client(forwarded_authorization: str | None = None) -> None:
         return None
 
     executor._build_mcp_client = _no_mcp_client  # type: ignore[method-assign]
@@ -185,7 +185,7 @@ async def test_executor_emits_one_file_event_per_file_block() -> None:
         [HumanMessage(content="render two CVs"), tool_msg],
     )
 
-    async def _no_mcp_client() -> None:
+    async def _no_mcp_client(forwarded_authorization: str | None = None) -> None:
         return None
 
     executor._build_mcp_client = _no_mcp_client  # type: ignore[method-assign]
@@ -257,7 +257,7 @@ async def test_executor_emits_file_part_from_interceptor_artifact_shape() -> Non
         [HumanMessage(content="render a CV please"), tool_msg],
     )
 
-    async def _no_mcp_client() -> None:
+    async def _no_mcp_client(forwarded_authorization: str | None = None) -> None:
         return None
 
     executor._build_mcp_client = _no_mcp_client  # type: ignore[method-assign]
